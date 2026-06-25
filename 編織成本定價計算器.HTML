@@ -5,34 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>編織定價計算</title>
     
-    <!-- PWA 設定 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="theme-color" content="#92400e">
     
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
-        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; }
+        body, html { 
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
+            overflow: hidden; height: 100%; 
+        }
         input, select, button { font-size: 16px !important; }
+        .main-content {
+            height: calc(100vh - 380px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
-<body class="bg-stone-100 text-stone-800 min-h-screen pb-24">
+<body class="bg-stone-100">
 
-    <div class="max-w-xl mx-auto bg-white min-h-screen shadow-xl">
+    <div class="max-w-xl mx-auto bg-white h-screen flex flex-col shadow-xl">
 
         <!-- Header -->
-        <div class="bg-amber-800 text-white p-6 text-center sticky top-0 z-10">
-            <h1 class="text-2xl font-bold tracking-wide">🧶 編織作品定價系統</h1>
-            <p class="text-amber-200 text-sm mt-1">手機版 · 自動儲存 · 即時計算</p>
+        <div class="bg-amber-800 text-white p-5 text-center">
+            <h1 class="text-2xl font-bold">🧶 編織作品定價系統</h1>
+            <p class="text-amber-200 text-sm">手機版 · 自動儲存</p>
         </div>
 
-        <div class="p-5 space-y-8">
-
+        <!-- 主要內容 -->
+        <div class="main-content p-5 space-y-8 flex-1 overflow-y-auto">
+            
             <!-- 基本資料 -->
             <div>
                 <h2 class="text-lg font-semibold text-stone-700 mb-3">📋 基本資料</h2>
-                
                 <div class="space-y-5">
                     <div>
                         <label class="block text-sm font-medium mb-1.5">作品名稱</label>
@@ -46,8 +52,7 @@
                         <input type="file" id="productImage" accept="image/*" 
                                class="w-full text-sm text-stone-500 file:mr-4 file:py-3 file:px-6 file:rounded-2xl file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
                         <div id="imagePreviewContainer" class="mt-4 hidden">
-                            <img id="imagePreview" src="" alt="成品預覽" 
-                                 class="w-full max-h-64 object-cover rounded-3xl shadow-md">
+                            <img id="imagePreview" src="" alt="成品預覽" class="w-full max-h-60 object-cover rounded-3xl shadow-md">
                         </div>
                     </div>
                 </div>
@@ -59,23 +64,21 @@
                 
                 <!-- 棉繩 -->
                 <div class="mb-6">
-                    <label class="block text-sm font-medium mb-1.5">
-                        1. 棉繩花費 <span class="text-xs text-stone-500">(支援公式如 45*2+30)</span>
-                    </label>
+                    <label class="block text-sm font-medium mb-1.5">1. 棉繩花費</label>
                     <div class="flex gap-2">
                         <input type="text" id="ropeFormula" oninput="saveToLocalStorage()" 
-                               class="flex-1 border border-stone-300 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-amber-600 focus:outline-none"
+                               class="flex-1 border border-stone-300 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-amber-600"
                                placeholder="50*3 + 20">
-                        <button onclick="calculateRope(); calculateTotalPrice();" 
-                                class="bg-amber-700 text-white px-6 rounded-2xl text-sm font-medium active:bg-amber-800">計算</button>
+                        <button onclick="calculateRope(); calculateTotalPrice()" 
+                                class="bg-amber-700 text-white px-6 rounded-2xl">計算</button>
                     </div>
                     <p class="text-right mt-1 text-sm text-stone-600">小計：$<span id="ropeTotalDisplay" class="font-semibold">0</span></p>
                 </div>
 
-                <!-- 配件 -->
+                <!-- 配件（所有配件皆可自訂金額） -->
                 <div class="mb-6">
                     <label class="block text-sm font-medium mb-1.5">2. 配件</label>
-                    <select id="accessoryType" onchange="toggleAccessoryField(); calculateTotalPrice();" 
+                    <select id="accessoryType" onchange="toggleAccessoryField(); calculateTotalPrice()" 
                             class="w-full border border-stone-300 rounded-2xl px-4 py-3 bg-white">
                         <option value="none">-- 請選擇配件 --</option>
                         <option value="金屬釦">金屬釦</option>
@@ -84,21 +87,25 @@
                         <option value="木圈">木圈</option>
                         <option value="木棍">木棍</option>
                         <option value="金屬圈">金屬圈</option>
-                        <option value="其他">其他（自訂）</option>
+                        <option value="其他">其他</option>
                     </select>
                     
-                    <div id="accessoryOtherDiv" class="mt-3 grid grid-cols-2 gap-3 hidden">
-                        <input type="text" id="accessoryNote" placeholder="備註" oninput="calculateTotalPrice()"
+                    <div id="accessoryPriceDiv" class="mt-4 hidden grid grid-cols-2 gap-3">
+                        <input type="text" id="accessoryNote" placeholder="配件名稱 / 備註" 
+                               oninput="calculateTotalPrice()" 
                                class="border border-stone-300 rounded-2xl px-4 py-3 text-sm">
-                        <input type="number" id="accessoryPrice" placeholder="金額" oninput="calculateTotalPrice()"
-                               class="border border-stone-300 rounded-2xl px-4 py-3 text-sm">
+                        <input type="number" id="accessoryPrice" placeholder="金額" 
+                               oninput="calculateTotalPrice()" 
+                               class="border border-stone-300 rounded-2xl px-4 py-3 text-sm" min="0">
                     </div>
+                    
+                    <p class="text-right mt-3 text-sm text-stone-600">配件小計：$<span id="accessoryTotalDisplay" class="font-semibold">0</span></p>
                 </div>
 
                 <!-- 包裝 -->
                 <div class="mb-6">
                     <label class="block text-sm font-medium mb-1.5">3. 包裝耗材</label>
-                    <select id="packagingType" onchange="togglePackagingField(); calculateTotalPrice();" 
+                    <select id="packagingType" onchange="togglePackagingField(); calculateTotalPrice()" 
                             class="w-full border border-stone-300 rounded-2xl px-4 py-3 bg-white">
                         <option value="none">-- 請選擇包裝 --</option>
                         <option value="包裝">包裝（固定金額）</option>
@@ -116,11 +123,12 @@
                     </div>
 
                     <div id="packagingOtherDiv" class="mt-3 grid grid-cols-2 gap-3 hidden">
-                        <input type="text" id="packagingNote" placeholder="備註" oninput="calculateTotalPrice()"
+                        <input type="text" id="packagingNote" placeholder="備註" oninput="calculateTotalPrice()" 
                                class="border border-stone-300 rounded-2xl px-4 py-3 text-sm">
-                        <input type="number" id="packagingPriceInput" placeholder="金額" oninput="calculateTotalPrice()"
+                        <input type="number" id="packagingPriceInput" placeholder="金額" oninput="calculateTotalPrice()" 
                                class="border border-stone-300 rounded-2xl px-4 py-3 text-sm">
                     </div>
+                    <p class="text-right mt-2 text-sm text-stone-600">包裝小計：$<span id="packagingTotalDisplay" class="font-semibold">0</span></p>
                 </div>
 
                 <!-- 工時 -->
@@ -128,67 +136,30 @@
                     <label class="block text-sm font-medium mb-1.5">4. 製作時間（$100 / 小時）</label>
                     <div class="flex items-center gap-3">
                         <input type="number" id="workHours" oninput="calculateTotalPrice()" 
-                               class="flex-1 border border-stone-300 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-amber-600"
+                               class="flex-1 border border-stone-300 rounded-2xl px-4 py-3" 
                                placeholder="0" min="0" step="0.5">
-                        <span class="text-stone-600 whitespace-nowrap">小時</span>
+                        <span class="text-stone-600">小時</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 計算按鈕 -->
-            <div class="flex gap-3 pt-4">
-                <button onclick="calculateTotalPrice()" 
-                        class="flex-1 bg-amber-800 hover:bg-amber-900 active:scale-95 transition text-white font-semibold py-4 rounded-3xl text-lg shadow-lg">
-                    計算總成本與定價
-                </button>
-                <button onclick="clearData()" 
-                        class="bg-stone-200 hover:bg-stone-300 active:scale-95 transition text-stone-700 font-medium px-6 rounded-3xl">
-                    清空
-                </button>
-            </div>
+            <div class="h-20"></div>
         </div>
 
-        <!-- 結果區 -->
-        <div class="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white border-t border-stone-200 shadow-2xl p-5">
-            <h2 class="text-lg font-semibold text-stone-700 mb-4">💰 計算結果</h2>
-            
-            <div class="space-y-3 text-base">
-                <div class="flex justify-between">
-                    <span class="text-stone-600">專案名稱</span>
-                    <span id="resName" class="font-semibold text-stone-900">-</span>
+        <!-- 固定結果區 -->
+        <div class="bg-white border-t border-stone-200 shadow-2xl p-5">
+            <h2 class="text-lg font-semibold mb-3">💰 計算結果</h2>
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div class="bg-amber-50 rounded-2xl p-3">
+                    <div class="text-xs text-amber-700">總成本</div>
+                    <div class="text-3xl font-bold text-amber-900">$<span id="resTotalCost">0</span></div>
                 </div>
-                <div class="flex justify-between">
-                    <span class="text-stone-600">棉繩</span>
-                    <span>$<span id="resRope" class="font-medium">0</span></span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-stone-600">配件 <span id="resAccessoryDetail" class="text-xs text-stone-400"></span></span>
-                    <span>$<span id="resAccessory" class="font-medium">0</span></span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-stone-600">包裝 <span id="resPackagingDetail" class="text-xs text-stone-400"></span></span>
-                    <span>$<span id="resPackaging" class="font-medium">0</span></span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-stone-600">人工成本</span>
-                    <span>$<span id="resWage" class="font-medium">0</span></span>
-                </div>
-
-                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mt-5">
-                    <div class="flex justify-between text-lg font-bold text-amber-900">
-                        <span>總成本</span>
-                        <span>$<span id="resTotalCost">0</span></span>
+                <div class="space-y-2">
+                    <div class="bg-stone-800 text-white rounded-2xl p-2 text-sm">
+                        一般定價<br><span id="priceNormal" class="text-2xl font-bold">0</span>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 mt-5">
-                    <div class="bg-stone-800 text-white p-3 rounded-2xl text-center">
-                        <div class="text-xs text-amber-300">一般定價 (1.5倍)</div>
-                        <div class="text-2xl font-bold" id="priceNormal">0</div>
-                    </div>
-                    <div class="bg-stone-800 text-white p-3 rounded-2xl text-center">
-                        <div class="text-xs text-amber-300">精緻手工 (2.0倍)</div>
-                        <div class="text-2xl font-bold" id="pricePremium">0</div>
+                    <div class="bg-stone-800 text-white rounded-2xl p-2 text-sm">
+                        精緻定價<br><span id="pricePremium" class="text-2xl font-bold">0</span>
                     </div>
                 </div>
             </div>
@@ -196,7 +167,6 @@
     </div>
 
     <script>
-        // 圖片預覽
         document.getElementById('productImage').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -211,92 +181,68 @@
 
         function toggleAccessoryField() {
             const val = document.getElementById('accessoryType').value;
-            document.getElementById('accessoryOtherDiv').classList.toggle('hidden', val !== '其他');
+            const priceDiv = document.getElementById('accessoryPriceDiv');
+            priceDiv.classList.toggle('hidden', val === 'none');
+            calculateTotalPrice();
         }
 
         function togglePackagingField() {
             const val = document.getElementById('packagingType').value;
             document.getElementById('packagingSelectDiv').classList.toggle('hidden', val !== '包裝');
             document.getElementById('packagingOtherDiv').classList.toggle('hidden', val !== '其他');
+            calculateTotalPrice();
         }
 
         function calculateRope() {
             const formula = document.getElementById('ropeFormula').value.trim();
             let total = 0;
             if (formula) {
-                try {
-                    total = eval(formula.replace('×','*').replace('÷','/'));
-                } catch(e) {
-                    total = 0;
-                }
+                try { total = eval(formula.replace('×','*').replace('÷','/')); } catch(e) {}
             }
             document.getElementById('ropeTotalDisplay').textContent = Math.round(total);
+            calculateTotalPrice();
         }
 
         function calculateTotalPrice() {
-            calculateRope();
-
             const rope = parseFloat(document.getElementById('ropeTotalDisplay').textContent) || 0;
+            
             let accessory = 0;
-            const accType = document.getElementById('accessoryType').value;
-            if (accType === '其他') {
+            if (document.getElementById('accessoryType').value !== 'none') {
                 accessory = parseFloat(document.getElementById('accessoryPrice').value) || 0;
             }
+            document.getElementById('accessoryTotalDisplay').textContent = accessory;
 
             let packaging = 0;
-            const packType = document.getElementById('packagingType').value;
-            if (packType === '包裝') {
-                packaging = parseFloat(document.getElementById('packagingPriceSelect').value) || 0;
-            } else if (packType === '其他') {
-                packaging = parseFloat(document.getElementById('packagingPriceInput').value) || 0;
-            }
+            const pType = document.getElementById('packagingType').value;
+            if (pType === '包裝') packaging = parseFloat(document.getElementById('packagingPriceSelect').value) || 0;
+            else if (pType === '其他') packaging = parseFloat(document.getElementById('packagingPriceInput').value) || 0;
+            document.getElementById('packagingTotalDisplay').textContent = packaging;
 
             const hours = parseFloat(document.getElementById('workHours').value) || 0;
             const wage = hours * 100;
             const totalCost = rope + accessory + packaging + wage;
 
-            document.getElementById('resName').textContent = document.getElementById('projectName').value || '-';
-            document.getElementById('resRope').textContent = rope;
-            document.getElementById('resAccessory').textContent = accessory;
-            document.getElementById('resPackaging').textContent = packaging;
-            document.getElementById('resWage').textContent = wage;
             document.getElementById('resTotalCost').textContent = totalCost;
-
             document.getElementById('priceNormal').textContent = Math.round(totalCost * 1.5);
             document.getElementById('pricePremium').textContent = Math.round(totalCost * 2);
-
-            saveToLocalStorage();
         }
 
         function saveToLocalStorage() {
-            const data = {
+            localStorage.setItem('weavingCalculator', JSON.stringify({
                 projectName: document.getElementById('projectName').value,
                 ropeFormula: document.getElementById('ropeFormula').value,
-                workHours: document.getElementById('workHours').value,
-            };
-            localStorage.setItem('weavingCalculator', JSON.stringify(data));
+                workHours: document.getElementById('workHours').value
+            }));
         }
 
-        function loadFromLocalStorage() {
+        window.onload = () => {
             const saved = localStorage.getItem('weavingCalculator');
             if (saved) {
-                const data = JSON.parse(saved);
-                document.getElementById('projectName').value = data.projectName || '';
-                document.getElementById('ropeFormula').value = data.ropeFormula || '';
-                document.getElementById('workHours').value = data.workHours || '';
+                const d = JSON.parse(saved);
+                document.getElementById('projectName').value = d.projectName || '';
+                document.getElementById('ropeFormula').value = d.ropeFormula || '';
+                document.getElementById('workHours').value = d.workHours || '';
             }
-        }
-
-        function clearData() {
-            if (confirm('確定要清除所有資料嗎？')) {
-                localStorage.removeItem('weavingCalculator');
-                location.reload();
-            }
-        }
-
-        // 初始化
-        window.onload = () => {
-            loadFromLocalStorage();
             calculateTotalPrice();
         };
     </script>
